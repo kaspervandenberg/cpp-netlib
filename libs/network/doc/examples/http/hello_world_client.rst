@@ -17,6 +17,8 @@ server that we created earlier. This really simple client will look like this:
 .. code-block:: c++
 
     #include <boost/network/protocol/http/client.hpp>
+    #include <boost/asio/io_service.hpp>
+    #include <boost/shared_ptr.hpp>
     #include <string>
     #include <sstream>
     #include <iostream>
@@ -30,7 +32,9 @@ server that we created earlier. This really simple client will look like this:
         }
 
         try {
-            http::client client;
+            boost::shared_ptr<asio::io_service> io_service = boost::make_shared<asio::io_service>();
+            http::client client(http::client::options()
+                    .io_service(io_service));
             std::ostringstream url;
             url << "http://" << argv[1] << ":" << argv[2] << "/";
             http::client::request request(url.str());
@@ -39,8 +43,10 @@ server that we created earlier. This really simple client will look like this:
             std::cout << body(response) << std::endl;
         } catch (std::exception & e) {
             std::cerr << e.what() << std::endl;
+            io_service->stop();
             return 1;
         }
+        io_service->stop();
         return 0;
     }
 

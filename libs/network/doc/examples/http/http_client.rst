@@ -18,6 +18,8 @@ Without further ado, the code to do this is as follows:
 .. code-block:: c++
 
     #include <boost/network/protocol/http/client.hpp>
+    #include <boost/asio/io_service.hpp>
+    #include <boost/shared_ptr.hpp>
     #include <iostream>
 
     int main(int argc, char *argv[]) {
@@ -28,7 +30,9 @@ Without further ado, the code to do this is as follows:
     	    return 1;
         }
 
-        http::client client;
+        boost::shared_ptr<asio::io_service> io_service = boost::make_shared<asio::io_service>();
+        http::client client(http::client::options()
+                .io_service(io_service));
         http::client::request request(argv[1]);
 	request << header("Connection", "close");
 	http::client::response response = client.get(request);

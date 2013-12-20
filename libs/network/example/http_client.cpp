@@ -11,6 +11,8 @@
 */
 #include <boost/program_options.hpp>
 #include <boost/network/protocol/http.hpp>
+#include <boost/asio/io_service.hpp>
+#include <boost/shared_ptr.hpp>
 #include <string>
 #include <utility>
 #include <iostream>
@@ -62,8 +64,11 @@ int main(int argc, char * argv[]) {
     http_client::string_type destination_ = host(request);
 
     request << ::boost::network::header("Connection", "close");
-    http_client::options client_options;
-    http_client client(client_options.follow_redirects(true));
+    boost::shared_ptr<asio::io_service> io_service = boost::make_shared<asio::io_service>();
+    http_client::options client_options
+        .io_service(io_service)
+        .follow_redirects(true);
+    http_client client(client_options);
     http_client::response response = client.get(request);
 
     if (show_headers) {
@@ -77,6 +82,8 @@ int main(int argc, char * argv[]) {
 
     body_range<http_client::response>::type body_ = body(response).range();
     boost::copy(body_, std::ostream_iterator<char_<http_client::request::tag>::type>(std::cout));
+
+    io_service->stop();
     return EXIT_SUCCESS;
 }
 //]
